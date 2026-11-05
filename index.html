@@ -110,6 +110,68 @@ h1{font-size:clamp(25px,5vw,42px);margin:0 0 8px}.sub{color:var(--muted);margin:
 footer{text-align:center;color:#7181a5;font-size:11px;padding:18px}
 @media(max-width:760px){.game-layout{grid-template-columns:1fr}.side-panel{display:grid;grid-template-columns:1fr 1fr;gap:8px}.side-panel h3{grid-column:1/-1}.side-panel .actions{grid-column:1/-1;grid-template-columns:repeat(2,1fr)}.hero-grid{grid-template-columns:repeat(4,1fr)}.board{min-width:0;width:max-content}}
 @media(max-width:420px){body{padding-left:8px;padding-right:8px}.hero-grid{grid-template-columns:repeat(4,1fr)}.mode-grid{grid-template-columns:1fr 1fr}.player{padding:6px}.avatar{width:34px;height:34px}.board-panel{padding:8px}}
+
+/* === CINEMATIC BATTLEFIELD UPGRADE === */
+:root{--arena-cyan:#5ef4ff;--arena-blue:#368cff;--arena-red:#ff466f;--arena-gold:#ffd36a}
+body{background:radial-gradient(ellipse at 50% -12%,#425d9b 0,#18294e 34%,#090f20 76%,#050914 100%);background-attachment:fixed}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.28;background-image:radial-gradient(2px 2px at 12% 18%,#fff 50%,transparent 60%),radial-gradient(1px 1px at 72% 14%,#9cefff 50%,transparent 60%),radial-gradient(2px 2px at 88% 63%,#fff 50%,transparent 60%),radial-gradient(1px 1px at 33% 77%,#ffd987 50%,transparent 60%),radial-gradient(1px 1px at 55% 42%,#fff 50%,transparent 60%);background-size:260px 230px}
+header,main,footer{position:relative;z-index:1}
+.brand{text-shadow:0 0 18px #73dfff66,0 3px 0 #0008}
+.tag{ text-shadow:0 0 12px #66e3f4aa}
+.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,#263f70eF,#111d39f2 58%,#392650f2);border-color:#6c91c7;box-shadow:0 18px 55px #0009,inset 0 1px 0 #ffffff30}
+.hero:before{content:"";position:absolute;inset:-60% -20%;pointer-events:none;background:linear-gradient(105deg,transparent 42%,#a5eaff12 49%,#fff2 50%,transparent 57%);transform:translateX(-55%);animation:arenaSweep 8s ease-in-out infinite}
+@keyframes arenaSweep{0%,35%{transform:translateX(-65%)}75%,100%{transform:translateX(65%)}}
+.mode-card,.diff-card,.hero-card{position:relative;overflow:hidden;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;background:linear-gradient(145deg,#172849,#0c152b);box-shadow:inset 0 1px 0 #ffffff12,0 6px 16px #0003}
+.mode-card:after,.diff-card:after,.hero-card:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(120deg,transparent 25%,#fff1 50%,transparent 72%);transform:translateX(-120%);transition:transform .5s}
+.mode-card:active,.diff-card:active,.hero-card:active{transform:scale(.97)}
+.mode-card.selected,.diff-card.selected,.hero-card.selected{border-color:#ffda79;box-shadow:0 0 0 1px #ffda79,0 0 22px #ffbf4b55,inset 0 0 20px #ffcf4b14}
+.game-layout{perspective:1200px}
+.board-panel,.side-panel{position:relative;overflow:hidden;background:linear-gradient(145deg,#1c2c4d,#101a32 72%);border-color:#54729f;box-shadow:0 18px 44px #0007,inset 0 1px 0 #ffffff20}
+.board-panel:before,.side-panel:before{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:linear-gradient(135deg,#7beaff0c,transparent 38%,#ffb84b08 75%)}
+.scorebar,.status,.victory-banner,.board-wrap,.side-panel>*{position:relative;z-index:1}
+.player{border:1px solid #3d5277;background:linear-gradient(145deg,#172745,#0d172d);box-shadow:inset 0 1px 0 #ffffff15}
+.player.active-turn{outline:2px solid var(--arena-gold);box-shadow:0 0 18px #ffd16666,inset 0 0 18px #ffd16612;animation:turnPulse 1.8s ease-in-out infinite}
+@keyframes turnPulse{50%{box-shadow:0 0 28px #ffd16699,inset 0 0 22px #ffd16620}}
+.avatar{box-shadow:0 0 14px #6ddfff55,inset 0 2px 5px #fff8}
+.status{border:1px solid #5c78a4;background:linear-gradient(90deg,#101d37,#1c3154,#101d37);box-shadow:inset 0 1px 0 #ffffff19,0 4px 12px #0003;text-shadow:0 0 12px #ffd16688}
+.board-wrap{isolation:isolate;position:relative;border:2px solid #d6a45c;background:linear-gradient(145deg,#f4ca84,#94602e);box-shadow:0 0 0 3px #3c2a1c,0 0 26px #ffbd5b44,inset 0 0 20px #633c1c99}
+.board-wrap:before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(circle at 50% 50%,#fff4 0,transparent 68%),linear-gradient(135deg,#fff2,transparent 40%,#4b260c22)}
+.board{position:relative;z-index:0;filter:drop-shadow(0 5px 5px #3b210d66)}
+.cell{position:relative;transition:filter .13s ease,background .13s ease;box-shadow:inset 1px 1px 0 #fff9,inset -2px -2px 3px #a66e3555,0 1px 1px #815326}
+.cell:not(:disabled):hover{filter:brightness(1.12);box-shadow:inset 0 0 0 2px #fff9,0 0 10px #fff9}
+.cell:not(:disabled):active{filter:brightness(1.25)}
+.cell .piece{position:relative;overflow:visible;border-width:2px;box-shadow:inset 2px 3px 5px #ffffffa8,inset -4px -5px 7px #07152d99,0 4px 6px #0009,0 0 12px currentColor;transform:translateZ(0)}
+.piece.p1{color:#ff627e;border-color:#ffd2d8;box-shadow:inset 2px 3px 5px #ffffffa8,inset -4px -5px 7px #70132999,0 4px 6px #0009,0 0 12px #ff456c88}
+.piece.p2{color:#66caff;border-color:#d3f3ff;box-shadow:inset 2px 3px 5px #ffffffa8,inset -4px -5px 7px #102f7099,0 4px 6px #0009,0 0 12px #42baff99}
+.cell.win{z-index:2;filter:brightness(1.25);box-shadow:inset 0 0 0 3px #fff4a1,0 0 16px #fff16b,0 0 28px #ff8b35;animation:winTile .55s ease-in-out infinite alternate}
+@keyframes winTile{to{filter:brightness(1.55);box-shadow:inset 0 0 0 3px #fff,0 0 24px #fff16b,0 0 38px #ff8b35}}
+/* Power-up aura and per-hero signature impacts */
+.cell .piece[class*="attack-"]:before{content:"";position:absolute;inset:-7px;border:2px solid #fff8;border-radius:50%;pointer-events:none;animation:powerRing .72s ease-out both;box-shadow:0 0 14px currentColor}
+@keyframes powerRing{0%{transform:scale(.25);opacity:0}25%{opacity:1}100%{transform:scale(1.8);opacity:0}}
+.piece.attack-spider{animation:cinSpider .72s cubic-bezier(.16,.8,.2,1) both;filter:drop-shadow(0 0 12px #ff4c74)}
+@keyframes cinSpider{0%{transform:translate(-18px,-22px) rotate(-35deg) scale(.15);filter:brightness(3)}42%{transform:translate(3px,3px) rotate(12deg) scale(1.35)}65%{transform:scale(.88)}100%{transform:none;filter:drop-shadow(0 0 10px #ff4c74)}}
+.piece.attack-iron{animation:cinIron .72s cubic-bezier(.15,.8,.2,1) both;filter:drop-shadow(0 0 14px #ffb347)}
+@keyframes cinIron{0%{transform:translateY(-25px) scale(.15) rotateY(100deg);filter:brightness(4)}38%{transform:translateY(4px) scale(1.4) rotateY(-20deg)}68%{transform:scale(.9)}100%{transform:none;filter:drop-shadow(0 0 12px #ffb347)}}
+.piece.attack-hulk{animation:cinHulk .68s cubic-bezier(.2,.9,.2,1) both;filter:drop-shadow(0 0 14px #7dff8c)}
+@keyframes cinHulk{0%{transform:translateY(-30px) scale(.45)}45%{transform:translateY(7px) scale(1.5)}65%{transform:translateY(-3px) scale(.92)}100%{transform:none;filter:drop-shadow(0 0 12px #7dff8c)}}
+.piece.attack-cap{animation:cinCap .76s ease-out both;filter:drop-shadow(0 0 14px #6dcaff)}
+@keyframes cinCap{0%{transform:rotate(-160deg) scale(.15)}55%{transform:rotate(25deg) scale(1.4)}100%{transform:rotate(0) scale(1);filter:drop-shadow(0 0 12px #6dcaff)}}
+.piece.attack-thor{animation:cinThor .72s ease-out both;filter:drop-shadow(0 0 18px #fff58b)}
+@keyframes cinThor{0%{transform:scale(.3);filter:brightness(1)}30%{transform:scale(1.5);filter:brightness(3)}55%{transform:scale(.85);filter:brightness(1.8)}100%{transform:scale(1);filter:drop-shadow(0 0 14px #fff58b)}}
+.piece.attack-panther{animation:cinPanther .7s ease-out both;filter:drop-shadow(0 0 15px #c58aff)}
+@keyframes cinPanther{0%{transform:translateX(-18px) scale(.2) rotateY(100deg)}55%{transform:translateX(3px) scale(1.4) rotateY(-18deg)}100%{transform:none;filter:drop-shadow(0 0 13px #c58aff)}}
+.piece.attack-strange{animation:cinStrange .82s ease-out both;filter:drop-shadow(0 0 16px #ff9c55)}
+@keyframes cinStrange{0%{transform:rotateY(100deg) scale(.2)}45%{transform:rotateY(-25deg) scale(1.45)}100%{transform:none;filter:drop-shadow(0 0 13px #ff9c55)}}
+.piece.attack-ant{animation:cinAnt .72s ease-in-out both;filter:drop-shadow(0 0 14px #ff6868)}
+@keyframes cinAnt{0%{transform:scale(.08)}35%{transform:scale(1.5)}62%{transform:scale(.82)}100%{transform:scale(1);filter:drop-shadow(0 0 12px #ff6868)}}
+.victory-banner{border-width:2px;box-shadow:0 0 0 1px #ffd16644,0 0 28px #ffbd4d44,inset 0 1px 0 #ffffff33}
+.victory-art{background:radial-gradient(circle,#fff4,#ffffff05 72%);box-shadow:inset 0 0 22px #fff2,0 0 24px #ffcb5a55}
+.victory-copy strong{text-shadow:0 0 16px #ffd16699,0 2px 3px #0008}
+.side-panel button{transition:filter .15s,transform .15s}
+.side-panel button:active{filter:brightness(1.2)}
+@media(max-width:760px){.board-panel{box-shadow:0 12px 35px #0008,inset 0 1px 0 #ffffff20}.board-wrap{padding:6px}.cell .piece[class*="attack-"]:before{inset:-5px}}
+@media(prefers-reduced-motion:reduce){body:before,.hero:before,.player.active-turn{animation:none!important}.cell .piece[class*="attack-"]:before{animation:none!important}}
+
 </style>
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#101827">
