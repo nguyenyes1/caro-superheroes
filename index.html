@@ -244,7 +244,7 @@ const heroes=[
  {id:'spider',name:'Spider-Man',emoji:'🕷️',color:'#c9364c'},
  {id:'hulk',name:'Hulk',emoji:'💚',color:'#4c9c65'}
 ];
-const botHero={easy:heroes[0],medium:heroes[1],hard:heroes[2]};
+const botHero={easy:heroes.find(h=>h.id==='spider'),medium:heroes.find(h=>h.id==='iron'),hard:heroes.find(h=>h.id==='cap')};
 const N=15,EMPTY=0;let board=[],moves=[],mode='bot',difficulty='easy',hero1=heroes[0],hero2=heroes[3],turn=1,finished=false,winning=[],stats=loadStats();let muted=localStorage.getItem('caroSuperMuted')==='true';let audioCtx=null;
 const $=id=>document.getElementById(id);
 function loadStats(){try{return JSON.parse(localStorage.getItem('caroSuperStats'))||{wins:0,losses:0,draws:0}}catch{return{wins:0,losses:0,draws:0}}}
