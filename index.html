@@ -318,6 +318,7 @@ refreshSetup();saveStats();updateSoundButton();
 
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
+import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
 (()=>{
  const canvas=document.getElementById('battle3d'); if(!canvas)return;
  const scene=new THREE.Scene(); scene.background=new THREE.Color(0x071326); scene.fog=new THREE.Fog(0x071326,10,23);
@@ -379,7 +380,18 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.m
   return g;
  }
  let left=null,right=null,burst=null,clock=new THREE.Clock(),active=true,effects=[];
- function rebuild(a,b){if(left)scene.remove(left);if(right)scene.remove(right);left=makeHero(a,-1.65,1);right=makeHero(b,1.65,2);right.rotation.y=Math.PI;}
+ const heroLoader=new GLTFLoader();
+ function applyGLB(group,id){
+  const url='./assets/heroes/'+id+'.glb';
+  heroLoader.load(url,gltf=>{
+   if(!group.parent)return;
+   const model=gltf.scene;model.name=id+'-glb-model';
+   model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;if(o.material){o.material.metalness=.42;o.material.roughness=.34}}});
+   group.children.slice().forEach(child=>{if(child!==group.userData.aura&&child!==group.userData.magic)child.visible=false});
+   model.scale.setScalar(1);model.position.y=0;group.add(model);group.userData.glb=model;group.userData.glbLoaded=true;
+  },undefined,err=>console.warn('Hero GLB load failed; using built-in 3D fallback:',id,err));
+ }
+ function rebuild(a,b){if(left)scene.remove(left);if(right)scene.remove(right);left=makeHero(a,-1.65,1);right=makeHero(b,1.65,2);right.rotation.y=Math.PI;applyGLB(left,a);applyGLB(right,b);}
  function resize(){const w=Math.max(1,canvas.clientWidth),h=Math.max(1,canvas.clientHeight);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}
  new ResizeObserver(resize).observe(canvas);resize();
  window.Caro3D={
