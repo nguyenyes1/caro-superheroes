@@ -406,7 +406,7 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/
   const aura=new THREE.Mesh(new THREE.TorusGeometry(.78,.035,8,48),new THREE.MeshBasicMaterial({color:side===1?0x55dfff:0xff6c83,transparent:true,opacity:.85}));aura.rotation.x=Math.PI/2;aura.position.y=.08;g.add(aura);g.userData.aura=aura;
   return g;
  }
- let left=null,right=null,burst=null,clock=new THREE.Clock(),active=true,effects=[];
+ let left=null,right=null,burst=null,clock=new THREE.Clock(),active=true,effects=[],cameraShake=0;
  const heroLoader=new GLTFLoader();
  const heroPalettes={
   spider:{main:0xc92743,accent:0x164f9e,head:0xc92743,dark:0x111a2a,glow:0xe8f7ff},
@@ -453,7 +453,7 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/
  window.Caro3D={
   setHeroes(a,b){rebuild(a,b)},
   playMove(id,player){
-   const g=player===1?left:right;if(!g)return;g.userData.attack=1;g.userData.kind=(heroes[id]||heroes.spider).kind;g.userData.attackTime=0;
+   const g=player===1?left:right;if(!g)return;cameraShake=Math.max(cameraShake,.16);g.userData.attack=1;g.userData.kind=(heroes[id]||heroes.spider).kind;g.userData.attackTime=0;
    const color=player===1?0x4fdcff:0xff597a,kind=(heroes[id]||heroes.spider).kind;
    g.userData.arms?.forEach((a,i)=>{a.userData.base=i===0?-.12:.12});
    const origin=new THREE.Vector3(g.position.x,1.35,.42),target=new THREE.Vector3(player===1?1.05:-1.05,1.1,.35);
@@ -485,13 +485,28 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/
   }
  };
  function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04),t=clock.elapsedTime;[left,right].forEach(g=>{if(!g)return;g.position.y=Math.sin(t*2+g.userData.phase)*.045;if(g.userData.magic)g.userData.magic.rotation.z=t*1.5;if(g.userData.aura)g.userData.aura.rotation.z=-t*.35;if(g.userData.arms){g.userData.arms.forEach((a,i)=>{a.rotation.z=Math.sin(t*1.7+g.userData.phase+i)*.035+(g.userData.attack>0?(i===0?-.85:.95)*Math.sin((1-g.userData.attack)*Math.PI):0)})}if(g.userData.attack>0){const k=g.userData.attack;g.rotation.z=(g.userData.side===1?1:-1)*Math.sin((1-k)*Math.PI)*.35;g.position.x=(g.userData.side===1?-1.65:1.65)+(g.userData.side===1?1:-1)*Math.sin((1-k)*Math.PI)*.42;g.scale.setScalar(1+.18*Math.sin((1-k)*Math.PI));g.userData.attack-=dt*2.8;if(g.userData.attack<=0){g.rotation.z=0;g.position.x=g.userData.side===1?-1.65:1.65;g.scale.setScalar(1)}}});
+  cameraShake=Math.max(0,cameraShake-dt*.42);
+  camera.position.x=(Math.random()-.5)*cameraShake;
+  camera.position.y=4.35+(Math.random()-.5)*cameraShake*.7;
+  camera.lookAt(0,1.22,0);
   effects=effects.filter(fx=>{fx.userData.life-=dt*1.35;const p=Math.min(1,1-fx.userData.life),u=fx.userData;
+   if(!u.impactDone&&p>.48){
+    u.impactDone=true;cameraShake=Math.max(cameraShake,.24);
+    const impact=new THREE.Mesh(new THREE.SphereGeometry(.28,16,12),new THREE.MeshBasicMaterial({color:u.kind==='lightning'?0xc8f4ff:u.kind==='magic'?0xffb45f:u.kind==='smash'?0x9dff7d:0x65dfff,transparent:true,opacity:.9,wireframe:true}));
+    impact.position.copy(u.target);scene.add(impact);impact.scale.setScalar(.3);
+    const impactRing=new THREE.Mesh(new THREE.TorusGeometry(.35,.035,8,40),new THREE.MeshBasicMaterial({color:u.kind==='magic'?0xffb45f:0x8cecff,transparent:true,opacity:.9}));
+    impactRing.position.set(u.target.x,.06,u.target.z);impactRing.rotation.x=Math.PI/2;scene.add(impactRing);
+    const flashLight=new THREE.PointLight(u.kind==='smash'?0x9dff7d:0x63cfff,18,4);flashLight.position.copy(u.target);scene.add(flashLight);
+    u.impactObjects=[impact,impactRing,flashLight];
+   }
+   if(u.impactObjects){u.impactObjects[0].scale.setScalar(.3+p*2.8);u.impactObjects[0].material.opacity=Math.max(0,u.life);u.impactObjects[1].scale.setScalar(.5+p*3.2);u.impactObjects[1].material.opacity=Math.max(0,u.life);u.impactObjects[2].intensity=Math.max(0,u.life*18)}
+
    if(u.missile){u.missile.position.lerpVectors(u.origin,u.target,p);u.flame.position.copy(u.missile.position).add(new THREE.Vector3(0,-.22,0))}
    if(u.shield){u.shield.position.lerpVectors(u.origin,u.target,p);u.shield.rotation.z+=dt*14}
    if(u.shock){u.shock.scale.setScalar(1+p*3);u.shock.material.opacity=Math.max(0,u.life)}
    if(u.pulse){u.pulse.scale.setScalar(1+p*2.4);u.pulse.material.opacity=Math.max(0,u.life)}
    fx.children.forEach(o=>{if(o.userData.v){o.position.addScaledVector(o.userData.v,dt*60);o.userData.v.y-=dt*.18}if(o.material&&o.material.transparent)o.material.opacity=Math.max(0,u.life)});
-   if(u.life<=0){scene.remove(fx);fx.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose()});return false}return true;
+   if(u.life<=0){(u.impactObjects||[]).forEach(o=>{scene.remove(o);if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose()});scene.remove(fx);fx.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose()});return false}return true;
   });
   if(burst){burst.children.forEach(o=>{if(o.userData.v){o.position.add(o.userData.v);o.userData.v.y-=.003;o.material.opacity=Math.max(0,o.material.opacity-.018)}})}
   renderer.render(scene,camera)
