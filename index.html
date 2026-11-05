@@ -465,7 +465,7 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/
    const bounds=new THREE.Box3().setFromObject(model);
    const size=bounds.getSize(new THREE.Vector3());
    const center=bounds.getCenter(new THREE.Vector3());
-   if(!Number.isFinite(size.y)||size.y<.1)throw new Error('Invalid hero model bounds: '+id);
+   if(!Number.isFinite(size.y)||size.y<.1){console.warn('Invalid GLB dimensions; procedural 3D fallback retained:',id);return;}
    const fit=2.58/size.y;
    model.scale.setScalar(fit);
    model.position.set(-center.x*fit,-bounds.min.y*fit,-center.z*fit);
