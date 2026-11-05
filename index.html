@@ -381,12 +381,46 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/
  }
  let left=null,right=null,burst=null,clock=new THREE.Clock(),active=true,effects=[];
  const heroLoader=new GLTFLoader();
+ const heroPalettes={
+  spider:{main:0xc92743,accent:0x164f9e,head:0xc92743,dark:0x111a2a,glow:0xe8f7ff},
+  iron:{main:0xb91f2e,accent:0xe8a52b,head:0xe6ad35,dark:0x171b25,glow:0x55ddff},
+  cap:{main:0x1859a5,accent:0xc52b42,head:0x1859a5,dark:0x172238,glow:0xffd45c},
+  hulk:{main:0x269447,accent:0x202b32,head:0x42ad54,dark:0x18251d,glow:0xa5ff83},
+  thor:{main:0x315d9b,accent:0xa92c3d,head:0xb8c7d8,dark:0x182238,glow:0xffe18a},
+  panther:{main:0x171927,accent:0x6841a3,head:0x171927,dark:0x0b0d16,glow:0x8deaff},
+  strange:{main:0x254b83,accent:0xa83c2e,head:0xd18443,dark:0x1b1a2c,glow:0xffc16a},
+  ant:{main:0xa92231,accent:0x9eabb9,head:0xa92231,dark:0x1b202b,glow:0xff6c5c}
+ };
+ function createHeroMaterial(id){
+  const p=heroPalettes[id]||heroPalettes.spider;
+  const col=n=>new THREE.Color(n);
+  const material=new THREE.MeshStandardMaterial({color:0xffffff,metalness:.48,roughness:.32});
+  material.onBeforeCompile=shader=>{
+   shader.uniforms.heroMain={value:col(p.main)};shader.uniforms.heroAccent={value:col(p.accent)};
+   shader.uniforms.heroHead={value:col(p.head)};shader.uniforms.heroDark={value:col(p.dark)};shader.uniforms.heroGlow={value:col(p.glow)};
+   shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\\nvarying vec3 vHeroLocal;');
+   shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\\nvHeroLocal = position;');
+   shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\\nvarying vec3 vHeroLocal;\\nuniform vec3 heroMain; uniform vec3 heroAccent; uniform vec3 heroHead; uniform vec3 heroDark; uniform vec3 heroGlow;');
+   shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
+    float hy=vHeroLocal.y; vec3 armor=heroMain;
+    if(hy<0.31) armor=heroDark;
+    else if(hy<0.98) armor=heroAccent;
+    else if(hy>2.27) armor=heroAccent;
+    else if(hy>1.98) armor=(vHeroLocal.z>0.18?heroDark:heroHead);
+    else if(hy>1.55) armor=heroAccent;
+    else if(vHeroLocal.z>0.22 && hy>1.2 && hy<1.62) armor=heroGlow;
+    else if(abs(vHeroLocal.x)>0.68) armor=heroAccent;
+    diffuseColor.rgb *= armor;`);
+  };
+  material.customProgramCacheKey=()=> 'caro-hero-armor-'+id;
+  return material;
+ }
  function applyGLB(group,id){
   const url='./assets/heroes/'+id+'.glb';
   heroLoader.load(url,gltf=>{
    if(!group.parent)return;
    const model=gltf.scene;model.name=id+'-glb-model';
-   model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;if(o.material){o.material.metalness=.42;o.material.roughness=.34}}});
+   const heroMaterial=createHeroMaterial(id);model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;o.material=heroMaterial}});
    group.children.slice().forEach(child=>{if(child!==group.userData.aura&&child!==group.userData.magic)child.visible=false});
    model.scale.setScalar(1);model.position.y=0;group.add(model);group.userData.glb=model;group.userData.glbLoaded=true;
   },undefined,err=>console.warn('Hero GLB load failed; using built-in 3D fallback:',id,err));
