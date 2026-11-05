@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/models/spider.glb",
+      "destination": "https://drive.usercontent.google.com/download?id=1DmKy7HJ47mP14zBDUrT_50BzGmpfoscn&export=download"
+    }
+  ]
+}
