@@ -316,6 +316,7 @@ refreshSetup();saveStats();updateSoundButton();
 })();
 </script>
 
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
 <script type="module">
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
@@ -427,7 +428,7 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/
  }
  function rebuild(a,b){if(left)scene.remove(left);if(right)scene.remove(right);left=makeHero(a,-1.65,1);right=makeHero(b,1.65,2);right.rotation.y=Math.PI;applyGLB(left,a);applyGLB(right,b);}
  function resize(){const w=Math.max(1,canvas.clientWidth),h=Math.max(1,canvas.clientHeight);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}
- new ResizeObserver(resize).observe(canvas);resize();
+ const arenaObserver=new ResizeObserver(()=>{if(canvas.clientWidth>0&&canvas.clientHeight>0)resize()});arenaObserver.observe(canvas);window.addEventListener('resize',resize);requestAnimationFrame(()=>requestAnimationFrame(resize));
  window.Caro3D={
   setHeroes(a,b){rebuild(a,b)},
   playMove(id,player){
