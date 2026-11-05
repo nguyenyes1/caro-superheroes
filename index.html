@@ -398,9 +398,9 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/
   material.onBeforeCompile=shader=>{
    shader.uniforms.heroMain={value:col(p.main)};shader.uniforms.heroAccent={value:col(p.accent)};
    shader.uniforms.heroHead={value:col(p.head)};shader.uniforms.heroDark={value:col(p.dark)};shader.uniforms.heroGlow={value:col(p.glow)};
-   shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\\nvarying vec3 vHeroLocal;');
-   shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\\nvHeroLocal = position;');
-   shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\\nvarying vec3 vHeroLocal;\\nuniform vec3 heroMain; uniform vec3 heroAccent; uniform vec3 heroHead; uniform vec3 heroDark; uniform vec3 heroGlow;');
+   shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nvarying vec3 vHeroLocal;');
+   shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvHeroLocal = position;');
+   shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nvarying vec3 vHeroLocal;\nuniform vec3 heroMain; uniform vec3 heroAccent; uniform vec3 heroHead; uniform vec3 heroDark; uniform vec3 heroGlow;');
    shader.fragmentShader=shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
     float hy=vHeroLocal.y; vec3 armor=heroMain;
     if(hy<0.31) armor=heroDark;
