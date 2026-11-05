@@ -457,26 +457,39 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/
   return material;
  }
  function applyGLB(group,id){
-  const file='/assets/heroes/'+id+'.glb';
+  const files={
+   spider:null,
+   iron:'/iron_man.glb',
+   cap:'/captain_america_-_marvel_cinematic_universe.glb',
+   hulk:'/hulk_3d_model.glb',
+   thor:'/thor_-_marvel_rivals.glb',
+   panther:'/black_panther_-_marvel_rivals.glb'
+  };
+  const file=files[id]||('/assets/heroes/'+id+'.glb');
+  if(!file){group.userData.modelSource='procedural-fallback';return;}
   heroLoader.load(file,gltf=>{
    if(!group.parent)return;
    const model=gltf.scene;
    model.updateMatrixWorld(true);
-   const bounds=new THREE.Box3().setFromObject(model);
-   const size=bounds.getSize(new THREE.Vector3());
+   let bounds=new THREE.Box3().setFromObject(model);
+   let size=bounds.getSize(new THREE.Vector3());
+   // A few supplied models are authored Z-up; rotate those upright for the arena.
+   if(size.z>size.y*1.18 && size.z>size.x*1.18){
+    model.rotation.x=-Math.PI/2;
+    model.updateMatrixWorld(true);
+    bounds=new THREE.Box3().setFromObject(model);
+    size=bounds.getSize(new THREE.Vector3());
+   }
    const center=bounds.getCenter(new THREE.Vector3());
-   if(!Number.isFinite(size.y)||size.y<.1){console.warn('Invalid GLB dimensions; procedural 3D fallback retained:',id);return;}
-   const fit=2.58/size.y;
+   const height=Math.max(size.y,size.x,size.z);
+   if(!Number.isFinite(height)||height<1e-6){console.warn('Invalid GLB dimensions; procedural 3D fallback retained:',id);return;}
+   const fit=2.58/height;
    model.scale.setScalar(fit);
    model.position.set(-center.x*fit,-bounds.min.y*fit,-center.z*fit);
    model.traverse(node=>{
     if(!node.isMesh)return;
     node.castShadow=true;node.receiveShadow=true;
-    if(node.material){
-     const source=Array.isArray(node.material)?node.material:[node.material];
-     const colored=source.map(()=>createHeroMaterial(id));
-     node.material=Array.isArray(node.material)?colored:colored[0];
-    }
+    // Preserve the supplied model's original PBR materials and textures.
    });
    group.add(model);
    group.children.forEach(child=>{
