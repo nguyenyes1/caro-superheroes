@@ -457,8 +457,42 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/
   return material;
  }
  function applyGLB(group,id){
-  // Keep the animated articulated hero rig; merged static GLB geometry cannot perform skeletal combat animation.
-  group.userData.modelSource='articulated-hero-rig';
+  const file='/assets/heroes/'+id+'.glb';
+  heroLoader.load(file,gltf=>{
+   if(!group.parent)return;
+   const model=gltf.scene;
+   model.updateMatrixWorld(true);
+   const bounds=new THREE.Box3().setFromObject(model);
+   const size=bounds.getSize(new THREE.Vector3());
+   const center=bounds.getCenter(new THREE.Vector3());
+   if(!Number.isFinite(size.y)||size.y<.1)throw new Error('Invalid hero model bounds: '+id);
+   const fit=2.58/size.y;
+   model.scale.setScalar(fit);
+   model.position.set(-center.x*fit,-bounds.min.y*fit,-center.z*fit);
+   model.traverse(node=>{
+    if(!node.isMesh)return;
+    node.castShadow=true;node.receiveShadow=true;
+    if(node.material){
+     const source=Array.isArray(node.material)?node.material:[node.material];
+     const colored=source.map(()=>createHeroMaterial(id));
+     node.material=Array.isArray(node.material)?colored:colored[0];
+    }
+   });
+   group.add(model);
+   group.children.forEach(child=>{
+    if(child===model||child===group.userData.aura||child===group.userData.magic) return;
+    child.visible=false;
+   });
+   group.userData.model=model;
+   group.userData.modelSource='glb';
+   if(gltf.animations&&gltf.animations.length){
+    group.userData.mixer=new THREE.AnimationMixer(model);
+    group.userData.mixer.clipAction(gltf.animations[0]).play();
+   }
+  },undefined,error=>{
+   console.warn('Hero GLB unavailable; using procedural 3D fallback:',id,error);
+   group.userData.modelSource='procedural-fallback';
+  });
  }
 
  function rebuild(a,b){if(left)scene.remove(left);if(right)scene.remove(right);left=makeHero(a,-1.65,1);right=makeHero(b,1.65,2);right.rotation.y=Math.PI;applyGLB(left,a);applyGLB(right,b);}
@@ -498,7 +532,7 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/
    effects.push(fx);
   }
  };
- function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04),t=clock.elapsedTime;[left,right].forEach(g=>{if(!g)return;g.position.y=Math.sin(t*2+g.userData.phase)*.045;if(g.userData.magic)g.userData.magic.rotation.z=t*1.5;if(g.userData.aura)g.userData.aura.rotation.z=-t*.35;if(g.userData.arms){g.userData.arms.forEach((a,i)=>{a.rotation.z=Math.sin(t*1.7+g.userData.phase+i)*.035+(g.userData.attack>0?(i===0?-.85:.95)*Math.sin((1-g.userData.attack)*Math.PI):0)})}if(g.userData.attack>0){const k=g.userData.attack;g.rotation.z=(g.userData.side===1?1:-1)*Math.sin((1-k)*Math.PI)*.35;g.position.x=(g.userData.side===1?-1.65:1.65)+(g.userData.side===1?1:-1)*Math.sin((1-k)*Math.PI)*.42;g.scale.setScalar(1+.18*Math.sin((1-k)*Math.PI));g.userData.attack-=dt*2.8;if(g.userData.attack<=0){g.rotation.z=0;g.position.x=g.userData.side===1?-1.65:1.65;g.scale.setScalar(1)}}});
+ function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.04),t=clock.elapsedTime;[left,right].forEach(g=>{if(!g)return;if(g.userData.mixer)g.userData.mixer.update(dt);g.position.y=Math.sin(t*2+g.userData.phase)*.045;if(g.userData.magic)g.userData.magic.rotation.z=t*1.5;if(g.userData.aura)g.userData.aura.rotation.z=-t*.35;if(g.userData.arms){g.userData.arms.forEach((a,i)=>{a.rotation.z=Math.sin(t*1.7+g.userData.phase+i)*.035+(g.userData.attack>0?(i===0?-.85:.95)*Math.sin((1-g.userData.attack)*Math.PI):0)})}if(g.userData.attack>0){const k=g.userData.attack;g.rotation.z=(g.userData.side===1?1:-1)*Math.sin((1-k)*Math.PI)*.35;g.position.x=(g.userData.side===1?-1.65:1.65)+(g.userData.side===1?1:-1)*Math.sin((1-k)*Math.PI)*.42;g.scale.setScalar(1+.18*Math.sin((1-k)*Math.PI));g.userData.attack-=dt*2.8;if(g.userData.attack<=0){g.rotation.z=0;g.position.x=g.userData.side===1?-1.65:1.65;g.scale.setScalar(1)}}});
   cameraShake=Math.max(0,cameraShake-dt*.42);
   camera.position.x=(Math.random()-.5)*cameraShake;
   camera.position.y=4.35+(Math.random()-.5)*cameraShake*.7;
