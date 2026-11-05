@@ -1,4 +1,4 @@
-const CACHE_NAME = 'caro-superheroes-v8-ipad-glow-reset';
+const CACHE_NAME = 'caro-superheroes-v9-ipad-setup-fit';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon-192.svg', './icon-512.svg'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)));
