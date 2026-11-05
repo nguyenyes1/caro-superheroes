@@ -323,12 +323,15 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/
 (()=>{
  const canvas=document.getElementById('battle3d'); if(!canvas)return;
  const scene=new THREE.Scene(); scene.background=new THREE.Color(0x071326); scene.fog=new THREE.Fog(0x071326,10,23);
- const camera=new THREE.PerspectiveCamera(34,1,.1,100);camera.position.set(0,5.1,11.8);camera.lookAt(0,1.15,0);
+ const camera=new THREE.PerspectiveCamera(31,1,.1,100);camera.position.set(0,4.35,10.5);camera.lookAt(0,1.22,0);
  const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:'low-power'});
  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.5));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
  renderer.outputColorSpace=THREE.SRGBColorSpace;
  scene.add(new THREE.HemisphereLight(0xa9d9ff,0x18203d,2.0));
- const key=new THREE.DirectionalLight(0xffffff,3.0);key.position.set(-4,8,6);key.castShadow=true;scene.add(key);
+ const key=new THREE.DirectionalLight(0xffffff,3.2);key.position.set(-4,8,6);key.castShadow=true;scene.add(key);
+ const fill=new THREE.DirectionalLight(0xffc58a,1.25);fill.position.set(4,3,5);scene.add(fill);
+ const back=new THREE.DirectionalLight(0x438dff,2.4);back.position.set(0,5,-7);scene.add(back);
+ const arenaGlow=new THREE.PointLight(0xff7b45,18,12);arenaGlow.position.set(0,1.5,4);scene.add(arenaGlow);
  const rim=new THREE.PointLight(0x27bfff,30,18);rim.position.set(4,4,-3);scene.add(rim);
  const floor=new THREE.Mesh(new THREE.CylinderGeometry(5.2,5.5,.32,64),new THREE.MeshStandardMaterial({color:0x142b4c,metalness:.72,roughness:.34}));floor.position.y=-.28;floor.receiveShadow=true;scene.add(floor);
  const disc=new THREE.Mesh(new THREE.CylinderGeometry(4.8,4.8,.04,64),new THREE.MeshStandardMaterial({color:0x244a70,metalness:.4,roughness:.55}));disc.position.y=-.09;scene.add(disc);
@@ -377,6 +380,29 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/
   if(cfg.kind==='claw'){for(let s of [-1,1])for(let j=0;j<2;j++)limb(g,mats.silver,[s*.62,1.0,.2],[s*(.72+j*.07),.82,.42],.025)}
   if(cfg.kind==='magic'){const ring=new THREE.Mesh(new THREE.TorusGeometry(.52,.035,8,48),mat(0xffa34b,.3));ring.position.set(0,1.35,.35);g.add(ring);g.userData.magic=ring}
   if(cfg.kind==='lightning'){const hammer=box(g,mats.silver,[.78,1.1,.05],[.28,.22,.24]);limb(g,mats.gold,[.78,1.05,.05],[.78,.72,.05],.045);g.userData.weapon=hammer}
+  // Layered superhero armor: sculpted plates, seams, insignia and emissive details.
+  const trim=side===1?mats.silver:mats.gold;
+  sphere(g,accent,[0,1.48,.205],[.285,.22,.105]);
+  for(const s of [-1,1]){
+   sphere(g,accent,[s*.34,1.68,0],[.2,.19,.22]);
+   sphere(g,trim,[s*.35,1.68,.17],[.13,.12,.075]);
+   box(g,trim,[s*.18,1.02,.205],[.16,.12,.08]);
+   sphere(g,suit,[s*.17,.42,.02],[.17,.24,.19]);
+   sphere(g,accent,[s*.17,.18,.07],[.19,.12,.23]);
+   sphere(g,trim,[s*.17,.69,.16],[.13,.12,.075]);
+   for(let j=0;j<3;j++)box(g,trim,[s*.34,1.22-j*.12,.245],[.075,.035,.025]);
+  }
+  if(id==='iron'){sphere(g,mats.white,[0,1.43,.315],[.115,.115,.035]);sphere(g,mats.gold,[0,1.43,.29],[.17,.17,.025])}
+  else if(id==='cap'){const star=new THREE.Mesh(new THREE.ConeGeometry(.13,.2,5),mats.white);star.position.set(0,1.48,.31);star.rotation.z=Math.PI;g.add(star)}
+  else if(id==='spider'){for(let s of [-1,1]){limb(g,mats.white,[0,1.48,.32],[s*.12,1.58,.32],.012);limb(g,mats.white,[0,1.48,.32],[s*.12,1.38,.32],.012)}}
+  else if(id==='thor'){sphere(g,mats.gold,[0,1.43,.29],[.13,.13,.045])}
+  else if(id==='panther'){sphere(g,mats.purple,[0,1.44,.29],[.07,.2,.035])}
+  else if(id==='strange'){const sig=new THREE.Mesh(new THREE.TorusGeometry(.13,.025,6,24),mats.gold);sig.position.set(0,1.47,.31);g.add(sig)}
+  else if(id==='hulk'){sphere(g,mats.dark,[0,1.45,.27],[.2,.13,.05])}
+  else {sphere(g,mats.silver,[0,1.45,.29],[.12,.15,.04])}
+  for(let j=0;j<3;j++)box(g,accent,[0,1.15-j*.14,.225],[.34-j*.035,.095,.055]);
+  box(g,trim,[0,.91,.22],[.52,.105,.09]);
+  box(g,mats.dark,[0,.91,.275],[.12,.09,.025]);
   const aura=new THREE.Mesh(new THREE.TorusGeometry(.78,.035,8,48),new THREE.MeshBasicMaterial({color:side===1?0x55dfff:0xff6c83,transparent:true,opacity:.85}));aura.rotation.x=Math.PI/2;aura.position.y=.08;g.add(aura);g.userData.aura=aura;
   return g;
  }
@@ -417,15 +443,10 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/
   return material;
  }
  function applyGLB(group,id){
-  const url='./assets/heroes/'+id+'.glb';
-  heroLoader.load(url,gltf=>{
-   if(!group.parent)return;
-   const model=gltf.scene;model.name=id+'-glb-model';
-   const heroMaterial=createHeroMaterial(id);model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;o.material=heroMaterial}});
-   group.children.slice().forEach(child=>{if(child!==group.userData.aura&&child!==group.userData.magic)child.visible=false});
-   model.scale.setScalar(1);model.position.y=0;group.add(model);group.userData.glb=model;group.userData.glbLoaded=true;
-  },undefined,err=>console.warn('Hero GLB load failed; using built-in 3D fallback:',id,err));
+  // Keep the animated articulated hero rig; merged static GLB geometry cannot perform skeletal combat animation.
+  group.userData.modelSource='articulated-hero-rig';
  }
+
  function rebuild(a,b){if(left)scene.remove(left);if(right)scene.remove(right);left=makeHero(a,-1.65,1);right=makeHero(b,1.65,2);right.rotation.y=Math.PI;applyGLB(left,a);applyGLB(right,b);}
  function resize(){const w=Math.max(1,canvas.clientWidth),h=Math.max(1,canvas.clientHeight);renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}
  const arenaObserver=new ResizeObserver(()=>{if(canvas.clientWidth>0&&canvas.clientHeight>0)resize()});arenaObserver.observe(canvas);window.addEventListener('resize',resize);requestAnimationFrame(()=>requestAnimationFrame(resize));
