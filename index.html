@@ -521,9 +521,11 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/
    const fx=new THREE.Group();scene.add(fx);fx.userData={life:1,kind,origin:origin.clone(),target:target.clone(),player};
    const glow=new THREE.MeshBasicMaterial({color,transparent:true,opacity:.9});
    if(kind==='web'){
-    const curve=new THREE.CatmullRomCurve3([origin.clone(),origin.clone().add(new THREE.Vector3(0,.65,.25)),target.clone().add(new THREE.Vector3(0,.4,0)),target]);
-    fx.add(new THREE.Mesh(new THREE.TubeGeometry(curve,24,.025,6,false),new THREE.MeshBasicMaterial({color:0xe9f8ff})));
-    for(let i=0;i<4;i++){const strand=new THREE.Mesh(new THREE.TorusGeometry(.18+i*.09,.012,5,24),new THREE.MeshBasicMaterial({color:0xe9f8ff,transparent:true,opacity:.8}));strand.position.copy(target);strand.rotation.x=Math.PI/2;fx.add(strand)}
+    // No long white web trail across the arena: show a compact cyan impact web at the target.
+    for(let i=0;i<3;i++){
+     const strand=new THREE.Mesh(new THREE.TorusGeometry(.16+i*.075,.009,5,24),new THREE.MeshBasicMaterial({color:0x69dfff,transparent:true,opacity:.52}));
+     strand.position.copy(target);strand.rotation.set(Math.PI/2,0,i*.7);fx.add(strand);
+    }
    }else if(kind==='tech'){
     const missile=new THREE.Mesh(new THREE.ConeGeometry(.12,.48,10),mat(0xffb84a,.6,.25));missile.position.copy(origin);missile.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),new THREE.Vector3().subVectors(target,origin).normalize());fx.add(missile);
     const flame=new THREE.Mesh(new THREE.SphereGeometry(.14,10,8),new THREE.MeshBasicMaterial({color:0xff6b32}));flame.position.copy(origin);fx.add(flame);fx.userData.missile=missile;fx.userData.flame=flame;
